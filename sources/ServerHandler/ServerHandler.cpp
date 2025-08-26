@@ -62,6 +62,7 @@ namespace canftp
         }
         else if (imputCommand.compare("info") == 0)
         {
+            printf("= Server information:\r\n");
             printf("RegistrationInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.registrationInterval);
             printf("RegistrationRepeateCount: %u\r\n", this->Server_()->defaultSessionConfiguration.registrationRepeateCount);
             printf("SessionControlInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.sessionControlInterval);
