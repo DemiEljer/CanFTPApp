@@ -78,12 +78,14 @@ void printHelp()
     printf("    - [configFile]                      : path to config file (.yaml)\r\n");
     printf("Examples:\r\n");
     printf("./CanFTPApp -h\r\n");
-    printf("./CanFTPApp vcan0 -s\r\n");
-    printf("./CanFTPApp vcan0 --client ./clientConfiguration.yaml\r\n");
+    printf("sudo ./CanFTPApp vcan0 -s\r\n");
+    printf("sudo ./CanFTPApp vcan0 --client ./clientConfiguration.yaml\r\n");
 }
 
 int main(int argsCount, char** args)
 {
+    printf("CanFTPApp (v1.0.0)\r\n");
+
     // Чтение аргументов вызова
     {
         if (!argsReading(argsCount, args)
@@ -105,13 +107,13 @@ int main(int argsCount, char** args)
         {
             canFTPHandler = (canftp::AbstractEntityHandler*)(new canftp::ClientHandler());
 
-            printf("Application in client mode\r\n");
+            printf("Application started in client mode\r\n");
         }
         else if (applicationMode == SERVER_MODE)
         {
             canFTPHandler = (canftp::AbstractEntityHandler*)(new canftp::ServerHandler());
 
-            printf("Application in server mode\r\n");
+            printf("Application started in server mode\r\n");
         }
     }
     // Инициализация обработчика

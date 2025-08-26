@@ -4,8 +4,6 @@ set(PROJECT_NAME CanFTPApp)
 
 project(${PROJECT_NAME} VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
-# Флаг консольное отладки
-#add_definitions(-DDEBUG_CONSOLE -DDEBUG_CLIENT_STATES -DDEBUG_MESSAGES_CONTENT -DDEBUG_SESSION_STATES)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/CANFileTransferProtocol)
 add_subdirectory(${CMAKE_SOURCE_DIR}/libs/yaml-cpp)
