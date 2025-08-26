@@ -1,0 +1,10 @@
+registrationInterval: 100
+registrationRepeateCount: 10
+sessionControlInterval: 100
+sessionControlRepeateCount: 10
+repeateBlockCount: 10
+blockControlInterval: 50 
+blockControlRepeateCount: 10 
+frameSendingInterval: 1
+repeateAckInterval: 100
+repeateAckCount: 10

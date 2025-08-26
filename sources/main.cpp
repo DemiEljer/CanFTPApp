@@ -1,154 +1,168 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <iostream>
 #include <mutex>
-#include <atomic>
-#include <thread>
-#include <chrono>
 #include <condition_variable>
-#include <string.h>
 
-#include <string>
 #include "CANSocketHandler/CANSocketHandler.hpp"
 #include "TimeController/TimeController.hpp"
-#include "ClientHanler/ClientHandler.hpp"
+#include "ClientHandler/ClientHandler.hpp"
 #include "ServerHandler/ServerHandler.hpp"
 
+// Режим работы в качестве клиента
+#define CLIENT_MODE 1
+// Режим работы в качестве сервера
+#define SERVER_MODE 2
 
-canftp::can::CANSocketHandler canSocket;
-canftp::client::ClientHandler client;
-canftp::server::ServerHandler server;
+canftp::CANSocketHandler canSocket;
+canftp::AbstractEntityHandler* canFTPHandler = nullptr;
+
+// Флаг вывода help
+bool helpShow = false;
+// Имя интерфейса
+std::string interfaceName = "";
+// Режим работы приложения
+int applicationMode = 0;
+// Путь к конфигурационному файлу
+std::string configFilePath = "";
 
 void ErrorHandler(uint32_t errorCode)
 {
     printf("The error has occurred : %u\r\n", errorCode);
+
+    if (canFTPHandler != nullptr)
+    {
+        canFTPHandler->Stop();
+    }
 }
 
+bool argsReading(int argsCount, char** args)
+{
+    if (argsCount == 2)
+    {
+        if (std::strcmp(args[1], "--help") == 0 || std::strcmp(args[1], "-h") == 0)
+        {
+            helpShow = true;
 
-// Флаг, что приложение сейчас активно
-std::atomic_bool appliactionIsActive = true;
+            return true;
+        }
+    }
+    else if (argsCount == 3 || argsCount == 4)
+    {
+        interfaceName = args[1];
+
+        if (std::strcmp(args[2], "--client") == 0 || std::strcmp(args[2], "-c") == 0)
+        {
+            applicationMode = CLIENT_MODE;
+        }
+        else if (std::strcmp(args[2], "--server") == 0 || std::strcmp(args[2], "-s") == 0)
+        {
+            applicationMode = SERVER_MODE;
+        }
+
+        if (argsCount == 4)
+        {
+            configFilePath = args[3];
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+void printHelp()
+{
+    printf("Application invoke arguments combinations:\r\n");
+    printf("... <-h|--help>                         : print application help\r\n");
+    printf("... <interface> <mode> [configFile]     : application start up\r\n");
+    printf("    - <interface>                       : the name of CAN interface\r\n");
+    printf("    - <mode>                            : -c|--client (client mode) or -s|--server (server mode)\r\n");
+    printf("    - [configFile]                      : path to config file (.yaml)\r\n");
+    printf("Examples:\r\n");
+    printf("./CanFTPApp -h\r\n");
+    printf("./CanFTPApp vcan0 -s\r\n");
+    printf("./CanFTPApp vcan0 --client ./clientConfiguration.yaml\r\n");
+}
 
 int main(int argsCount, char** args)
 {
-    CanFTP_InitErrorHandler(ErrorHandler);
-    CanFTP_TimeHandlers_InitCurrentTimeGetter(canftp::time::TimeController::GetCurrentTime);
-
-    if (argsCount < 3)
+    // Чтение аргументов вызова
     {
-        printf("Enter the name of interface and application mode (--client or --server)\r\n");
+        if (!argsReading(argsCount, args)
+            || helpShow)
+        {
+            printHelp();
 
-        return 0;
+            return 0;
+        }
     }
-
-    // Имя интерфейса
-    std::string interfaceName = std::string(args[1]);
-
-    std::string configFilePath = "";
-    // Определения пути к файлу конфигурации
-    if (argsCount >= 4)
+    // Базовая инициализация
     {
-        configFilePath = std::string(args[3]);
+        CanFTP_InitErrorHandler(ErrorHandler);
+        CanFTP_TimeHandlers_InitCurrentTimeGetter(canftp::TimeController::GetCurrentTime);
     }
-
-    bool clientMode = false;
-
-    if (std::strcmp(args[2], "--client") == 0 || std::strcmp(args[2], "-c") == 0)
+    // Создание обработчика
     {
-        // Инициацлизация клиента
+        if (applicationMode == CLIENT_MODE)
+        {
+            canFTPHandler = (canftp::AbstractEntityHandler*)(new canftp::ClientHandler());
+
+            printf("Application in client mode\r\n");
+        }
+        else if (applicationMode == SERVER_MODE)
+        {
+            canFTPHandler = (canftp::AbstractEntityHandler*)(new canftp::ServerHandler());
+
+            printf("Application in server mode\r\n");
+        }
+    }
+    // Инициализация обработчика
+    {
         if (configFilePath != "")
         {
-            client.InitAndRun(configFilePath);
+            canFTPHandler->InitAndRun(configFilePath);
         }
         else
         {
-            client.InitAndRun();
+            canFTPHandler->InitAndRun();
         }
-
-        if (client.IsActive())
-        {
-            std::cout << "Client has started" << std::endl;
-        }
-
-        clientMode = true;
     }
-    else if (std::strcmp(args[2], "--server") == 0 || std::strcmp(args[2], "-s") == 0)
+    // Инциализация и запуск контроллеров CAN и времени
     {
-        // Инициацлизация клиента
-        if (configFilePath != "")
+        canFTPHandler->SetMessageSendEvent([&](CanFTP_CanMessage_t* message) { canSocket.SendMessage(message); });
+        // Подключение к сокету CAN
+        canSocket.SetReceiveMessageHandler([&](CanFTP_CanMessage_t* message) 
+        { 
+            canFTPHandler->ReceiveMessage(message);
+        });
+
+        canSocket.InitAndRun(interfaceName);
+        // Не удалось подключиться к сокету
+        if (!canSocket.IsActive())
         {
-            server.InitAndRun(configFilePath);
-        }
-        else
-        {
-            server.InitAndRun();
+            std::cout << "Can interface connecting error" << std::endl;
         }
 
-        if (server.IsActive())
-        {
-            std::cout << "Server has started" << std::endl;
-        }
+        // Запуск контроллера времени
+        canftp::TimeController::Start();
     }
-    else
-    {
-        printf("Wrong application mode (--client or --server)\r\n");
-
-        return 0;
-    }
-
-    client.SetMessageSendEvent([&](CanFTP_CanMessage_t* message) { canSocket.SendMessage(message); });
-    server.SetMessageSendEvent([&](CanFTP_CanMessage_t* message) { canSocket.SendMessage(message); });
-    // Подключение к сокету CAN
-    canSocket.SetReceiveMessageHandler([&](CanFTP_CanMessage_t* message) 
-    { 
-        if (clientMode)
-        {
-            client.ReceiveMessage(message); 
-        }
-        else
-        {
-            server.ReceiveMessage(message); 
-        }
-    });
-    canSocket.InitAndRun(interfaceName);
-    // Не удалось подключиться к сокету
-    if (!canSocket.IsActive())
-    {
-        std::cout << "Can interface connecting error" << std::endl;
-    }
-    // Запуск контроллера времени
-    canftp::time::TimeController::Start();
-
-    // Ожидание окончания потока контроллера клиента
+    // Ожидание окончания обработчика или контроллера CAN
     {
         std::mutex logicLockMutex;
         std::unique_lock<std::mutex> logicLock(logicLockMutex);
         std::condition_variable waiter;
 
-        try
+        waiter.wait(logicLock, [&]()
         {
-            waiter.wait(logicLock, [&]()
-            {
-                return (!client.IsActive() && clientMode)
-                    || (!server.IsActive() && !clientMode)
+            return     !canFTPHandler->IsActive()
                     || !canSocket.IsActive();
-            });
-        }
-        catch(const std::exception& e)
-        {
-
-        }
+        });
     }
-
-    if (clientMode)
+    // Остановка приложения
     {
-        client.Stop();
+        canFTPHandler->Stop();
+        delete canFTPHandler;
+        canSocket.Dispose();
+        canftp::TimeController::Stop();
     }
-    else
-    {
-        server.Stop();
-    }
-    canSocket.Dispose();
-    canftp::time::TimeController::Stop();
 
     return 0;
 }

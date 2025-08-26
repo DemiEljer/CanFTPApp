@@ -2,8 +2,6 @@
 
 namespace canftp
 {
-namespace time
-{
     CanFTP_TimeMark_t TimeController::CurrentTime_ = 0;
     bool TimeController::IsActive_ = false;
     std::thread* TimeController::TimeThread_ = nullptr;
@@ -42,5 +40,4 @@ namespace time
         delete TimeController::TimeThread_;
         TimeController::TimeThread_ = nullptr;
     }
-}
 }

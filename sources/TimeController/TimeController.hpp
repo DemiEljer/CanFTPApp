@@ -9,8 +9,6 @@ extern "C"
 
 namespace canftp
 {
-namespace time
-{
     class TimeController
     {
         private: static CanFTP_TimeMark_t CurrentTime_;
@@ -27,5 +25,4 @@ namespace time
         
         private: static void TimeThreadLogic_();
     };
-}
 }

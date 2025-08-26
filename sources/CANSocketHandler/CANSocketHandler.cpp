@@ -1,10 +1,7 @@
 #include "CANSocketHandler.hpp"
-
 #include "../TimeController/TimeController.hpp"
 
 namespace canftp
-{
-namespace can
 {
     void PrintMessage(CanFTP_CanMessage_t* message, uint32_t currentTime, bool rxFlag)
     {
@@ -130,5 +127,4 @@ namespace can
             }
         }
     }
-}
 }

@@ -12,6 +12,7 @@
 #include "yaml-cpp/yaml.h"
 #include <vector>
 #include <iterator>
+#include "../base/BaseEntityHandler.hpp"
 
 extern "C"
 {
@@ -20,61 +21,43 @@ extern "C"
 
 namespace canftp
 {
-namespace server
+class ServerHandler : public BaseEntityHandler<CanFTP_Server_t>
 {
-    class ServerHandler
+    private: CanFTP_Server_t* Server_()
     {
-        private: static std::map<CanFTP_Server_t*, ServerHandler*> ServerHandlers_;
+        return static_cast<CanFTP_Server_t*>(&this->Entity_);
+    }
 
-        public: static ServerHandler* GetHandler(CanFTP_Server_t* server);
+    public: static ServerHandler* GetHandler(CanFTP_Server_t* server)
+    {
+        return static_cast<ServerHandler*>(GetHandler_(server));
+    }
 
-        private: CanFTP_Server_t Server_;
+    private: std::map<CanFTP_Server_Session_t*, std::unique_ptr<uint8_t[]>> SessionsFiles_;
 
-        private: std::map<CanFTP_Server_Session_t*, std::unique_ptr<uint8_t[]>> SessionsFiles_;
+    public: void ServerSendMessageCallback(CanFTP_CanMessage_t* message)
+    {
+        SendMessage_(message);
+    }
 
-        private: std::function<void (CanFTP_CanMessage_t*)> MessageSendEvent_;
+    public: void ServerClientFoundCallback(CanFTP_Server_Client_t* client);
 
-        private: bool IsActive_ = false;
+    public: void ServerSessionFinishedCallback(CanFTP_Server_Session_t* session, CanFTP_SessionStatus_t status, CanFTP_DeviceCode_t activeClientsCount);
+    
+    public: void ServerGetFileBlockCallback(CanFTP_Server_Session_t* session, CanFTP_Session_FileBlock_t* fileBlock, CanFTP_FileLength_t startByteIndex, CanFTP_FileLength_t bytesCount);
+    
+    public: void ServerClientReleaseCallback(CanFTP_Server_Session_t* session, CanFTP_Server_Client_t* client, CanFTP_SessionStatus_t status);
 
-        private: std::thread LoopThread_;
+    public: virtual void ReceiveMessage(CanFTP_CanMessage_t* message);
 
-        private: std::thread ConsoleInputLoopThread_;
+    protected: virtual void InitBase_();
 
-        public: ~ServerHandler();
+    protected: virtual void InitFromConfigFile_(YAML::Node& config);
 
-        public: void InitAndRun();
+    protected: virtual void InitDefault_();
 
-        public: void InitAndRun(std::string configurationFile);
+    protected: virtual void LoopLogic_();
 
-        public: bool IsActive();
-
-        public: void Stop();
-
-        public: void SetMessageSendEvent(std::function<void (CanFTP_CanMessage_t*)> eventHandler);
-
-        public: void ReceiveMessage(CanFTP_CanMessage_t* message);
-
-        private: void LoopLogic_();
-
-        private: void ConsoleInputLogic_();
-
-        public: void ServerSendMessageCallback(CanFTP_CanMessage_t* message);
-
-        public: void ServerClientFoundCallback(CanFTP_Server_Client_t* client);
-
-        public: void ServerSessionFinishedCallback(CanFTP_Server_Session_t* session, CanFTP_SessionStatus_t status, CanFTP_DeviceCode_t activeClientsCount);
-        
-        public: void ServerGetFileBlockCallback(CanFTP_Server_Session_t* session, CanFTP_Session_FileBlock_t* fileBlock, CanFTP_FileLength_t startByteIndex, CanFTP_FileLength_t bytesCount);
-        
-        public: void ServerClientReleaseCallback(CanFTP_Server_Session_t* session, CanFTP_Server_Client_t* client, CanFTP_SessionStatus_t status);
-
-        private: void InitBase_();
-
-        private: bool InitFromConfigFile_(std::string configurationFile);
-
-        private: void InitDefault_();
-
-        private: void Run_();
-    };
-}
+    protected: virtual void ConsoleInputLogic_();
+};
 }

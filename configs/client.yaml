@@ -1,0 +1,9 @@
+pingPermition: 1
+sessionStartPermition: 1
+autpUpdateSoftVersion: 1
+serialNumber: 1234
+identifier: 56
+type: 789
+softLowerPart: 12
+softMiddlePart: 34
+softHigherPart: 56

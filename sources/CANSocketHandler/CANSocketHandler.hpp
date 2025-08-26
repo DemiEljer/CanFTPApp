@@ -26,8 +26,6 @@ extern "C"
 
 namespace canftp
 {
-namespace can
-{
     class CANSocketHandler
     {
         private: int Socket_ = 0;
@@ -50,6 +48,4 @@ namespace can
 
         private: void ReceiveMessagesLoopLogic_();
     };
-
-}
 }
