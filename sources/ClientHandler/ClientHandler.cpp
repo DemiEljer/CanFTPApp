@@ -63,7 +63,7 @@ namespace canftp
             printf("= Client information:\r\n");
             printf(" - Type: %u\r\n", this->Client_()->deviceConfig.type);
             printf(" - Serial number: %u\r\n", this->Client_()->deviceConfig.serialNumber);
-            printf(" - Identifierr: %u\r\n", this->Client_()->deviceConfig.identifier);
+            printf(" - Identifier: %u\r\n", this->Client_()->deviceConfig.identifier);
             printf(" - Version: %u.%u.%u\r\n"
                 , this->Client_()->deviceConfig.softVersion.higherPart
                 , this->Client_()->deviceConfig.softVersion.middlePart
@@ -127,7 +127,7 @@ namespace canftp
     {
         if (status == CANFTP_SESSIONSTATUS_OK)
         {
-            printf("! Client (%u) has successfuly finished session\r\n", this->Client_()->deviceConfig.serialNumber);
+            printf("! Client (%u) has successfully finished session\r\n", this->Client_()->deviceConfig.serialNumber);
             printf("- New version : %u.%u.%u\r\n", version->higherPart, version->middlePart, version->lowerPart);
             // Сохранение полученного файла в файл
             {

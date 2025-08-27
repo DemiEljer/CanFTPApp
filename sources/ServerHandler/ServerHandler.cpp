@@ -161,7 +161,7 @@ namespace canftp
 
             int clientsCount = 0;
             
-            if (readNoneZeroPositiveValue(&(clientsCount), "clients count invalid value"))
+            if (readNoneZeroPositiveValue(&(clientsCount), "Clients count invalid value"))
             {
                 std::unique_ptr<CanFTP_Server_Client_t*[]> sessionClients = std::make_unique<CanFTP_Server_Client_t*[]>(clientsCount);
                 // Инициализация клиентов
@@ -171,13 +171,13 @@ namespace canftp
 
                     int clientIndex = -1;
 
-                    if (readNoneNegativeValue(&(clientIndex), "invalid client index"))
+                    if (readNoneNegativeValue(&(clientIndex), "Invalid client index"))
                     {
                         CanFTP_Server_Client_t* client = CanFTP_Server_GetClientByIndex(this->Server_(), clientIndex);
 
                         if (client == CANFTP_NULL)
                         {
-                            printf("! Error: no client with such index\r\n");
+                            printf("! Error: No client with such index\r\n");
 
                             sessionConfigurationError = true;
 
@@ -185,7 +185,7 @@ namespace canftp
                         }
                         else if (CanFTP_Server_Client_IsInSession(client))
                         {
-                            printf("! Error: this client is taken by another session\r\n");
+                            printf("! Error: This client is taken by another session\r\n");
 
                             sessionConfigurationError = true;
 
@@ -206,7 +206,7 @@ namespace canftp
                 {
                     printf("- Input page index\r\n");
 
-                    if (readNoneNegativeValue(&(pageIndex), "invalid page index"))
+                    if (readNoneNegativeValue(&(pageIndex), "Invalid page index"))
                     {
                         newVersion.lowerPart = versionPartValue;
                     }
@@ -216,7 +216,7 @@ namespace canftp
                 {
                     printf("- Input new version: low part\r\n");
 
-                    if (readNoneNegativeValue(&(versionPartValue), "invalid version value"))
+                    if (readNoneNegativeValue(&(versionPartValue), "Invalid version value"))
                     {
                         newVersion.lowerPart = versionPartValue;
                     }
@@ -226,7 +226,7 @@ namespace canftp
                 {
                     printf("- Input new version: middle part\r\n");
 
-                    if (readNoneNegativeValue(&(versionPartValue), "invalid version value"))
+                    if (readNoneNegativeValue(&(versionPartValue), "Invalid version value"))
                     {
                         newVersion.middlePart = versionPartValue;
                     }
@@ -236,7 +236,7 @@ namespace canftp
                 {
                     printf("- Input new version: high part\r\n");
 
-                    if (readNoneNegativeValue(&(versionPartValue), "invalid version value"))
+                    if (readNoneNegativeValue(&(versionPartValue), "Invalid version value"))
                     {
                         newVersion.higherPart = versionPartValue;
                     }
@@ -279,19 +279,19 @@ namespace canftp
 
                     if (session != CANFTP_NULL)
                     {
-                        printf("- Session created\r\n");
+                        printf("- Session has been created\r\n");
 
                         this->SessionsFiles_.insert({session, std::make_unique<uint8_t[]>(fileContent.size())});
                         std::copy(fileContent.begin(), fileContent.end(), this->SessionsFiles_[session].get());
 
                         CanFTP_Server_Session_InitFileConfiguration(session, pageIndex, fileContent.size());
-                        printf("- File inited\r\n");
+                        printf("- File has been inited\r\n");
 
                         CanFTP_Server_Session_InitClients(session, clientsCount, sessionClients.get());
-                        printf("- Clients inited\r\n");
+                        printf("- Clients have been inited\r\n");
 
                         CanFTP_Server_Session_InitNewSoftVersion(session, &(newVersion));
-                        printf("- New version inited\r\n");
+                        printf("- New version has been inited\r\n");
 
                         CanFTP_Server_Session_Start(session);
 
@@ -299,7 +299,7 @@ namespace canftp
                     }
                     else
                     {
-                        printf("! Creation error: maybe ping process is active\r\n");
+                        printf("! Session creation error: Maybe ping process is active\r\n");
 
                         sessionConfigurationError = true;
                     }
@@ -321,7 +321,7 @@ namespace canftp
             {
                 auto session = CanFTP_Server_GetActiveSessionByIndex(this->Server_(), i);
 
-                printf("- Session [%u] : code %u, %f %, %u/%u clients, status - %u\r\n"
+                printf("- Session [%u] : code %u, complete %f %, %u/%u clients, status - %u\r\n"
                     , i
                     , session->code
                     , CanFTP_Server_Session_GetCompletingPercent(session) * 100.0F
@@ -336,7 +336,7 @@ namespace canftp
                     auto client = CanFTP_Server_Session_GetClientByIndex(session, j);
 
                     printf("    - Client [%u] : serial %u, status %u\r\n"
-                        , i
+                        , j
                         , client->serverClient->configuration.serialNumber
                         , client->statuses.sessionStatus);
                 }
