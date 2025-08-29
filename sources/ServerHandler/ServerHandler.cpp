@@ -160,6 +160,7 @@ namespace canftp
             };
 
             int clientsCount = 0;
+            int serverClientsCount = CanFTP_Server_GetClientsCount(this->Server_());
             
             if (readNoneZeroPositiveValue(&(clientsCount), "Clients count invalid value"))
             {
@@ -173,19 +174,9 @@ namespace canftp
 
                     if (readNoneNegativeValue(&(clientIndex), "Invalid client index"))
                     {
-                        CanFTP_Server_Client_t* client = CanFTP_Server_GetClientByIndex(this->Server_(), clientIndex);
-
-                        if (client == CANFTP_NULL)
+                        if (clientIndex >= serverClientsCount)
                         {
-                            printf("! Error: No client with such index\r\n");
-
-                            sessionConfigurationError = true;
-
-                            break;
-                        }
-                        else if (CanFTP_Server_Client_IsInSession(client))
-                        {
-                            printf("! Error: This client is taken by another session\r\n");
+                            printf("! Error: Client index out of range\r\n");
 
                             sessionConfigurationError = true;
 
@@ -193,7 +184,28 @@ namespace canftp
                         }
                         else
                         {
-                            sessionClients[i] = client;
+                            CanFTP_Server_Client_t* client = CanFTP_Server_GetClientByIndex(this->Server_(), clientIndex);
+
+                            if (client == CANFTP_NULL)
+                            {
+                                printf("! Error: No client with such index\r\n");
+
+                                sessionConfigurationError = true;
+
+                                break;
+                            }
+                            else if (CanFTP_Server_Client_IsInSession(client))
+                            {
+                                printf("! Error: This client is taken by another session\r\n");
+
+                                sessionConfigurationError = true;
+
+                                break;
+                            }
+                            else
+                            {
+                                sessionClients[i] = client;
+                            }
                         }
                     }
                 }

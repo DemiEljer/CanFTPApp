@@ -84,7 +84,7 @@ void printHelp()
 
 int main(int argsCount, char** args)
 {
-    printf("CanFTPApp (v1.0.0)\r\n");
+    printf("CanFTPApp (v1.0.1)\r\n");
 
     // Чтение аргументов вызова
     {
