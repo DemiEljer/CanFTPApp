@@ -71,8 +71,10 @@ namespace canftp
             printf("BlockControlInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.blockControlInterval);
             printf("BlockControlRepeateCount: %u\r\n", this->Server_()->defaultSessionConfiguration.blockControlRepeateCount);
             printf("FrameSendingInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.frameSendingInterval);
-            printf("RepeateAckInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.repeateAckInterval );
-            printf("RepeateAckCount: %u\r\n", this->Server_()->defaultSessionConfiguration.repeateAckCount);
+            printf("ClientSessionRepeateCount: %u\r\n", this->Server_()->defaultSessionConfiguration.clientSessionRepeateCount);
+            printf("ClientSessionRepeateInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.clientSessionRepeateInterval);
+            printf("ClientBlockRepeateCount: %u\r\n", this->Server_()->defaultSessionConfiguration.clientBlockRepeateCount);
+            printf("ClientBlockRepeateInterval: %u\r\n", this->Server_()->defaultSessionConfiguration.clientBlockRepeateInterval);
         }
         else if (imputCommand.compare("ping") == 0)
         {
@@ -100,6 +102,19 @@ namespace canftp
         }
         else if (imputCommand.compare("session") == 0)
         {
+            if (!CanFTP_Server_CanSessionBeCreated(this->Server_()))
+            {
+                printf("! Error: Session can not be created, stop pinging\r\n");
+
+                return;
+            }
+            else if (CanFTP_Server_GetClientsCount(this->Server_()) == 0)
+            {
+                printf("! Error: No clients has been found\r\n");
+
+                return;
+            }
+
             bool sessionConfigurationError = false;
 
             printf("= Session configuration has started\r\n");
@@ -212,13 +227,24 @@ namespace canftp
 
                 CanFTP_SoftwareVersion_t newVersion;
                 int versionPartValue = -1;
-                int pageIndex = -1;
+                int firstPageIndex = -1;
+                int pagesCount = -1;
 
                 if (!sessionConfigurationError)
                 {
                     printf("- Input page index\r\n");
 
-                    if (readNoneNegativeValue(&(pageIndex), "Invalid page index"))
+                    if (readNoneNegativeValue(&(firstPageIndex), "Invalid page index"))
+                    {
+                        newVersion.lowerPart = versionPartValue;
+                    }
+                }
+
+                if (!sessionConfigurationError)
+                {
+                    printf("- Input pages count\r\n");
+
+                    if (readNoneNegativeValue(&(pagesCount), "Invalid pages count"))
                     {
                         newVersion.lowerPart = versionPartValue;
                     }
@@ -296,7 +322,7 @@ namespace canftp
                         this->SessionsFiles_.insert({session, std::make_unique<uint8_t[]>(fileContent.size())});
                         std::copy(fileContent.begin(), fileContent.end(), this->SessionsFiles_[session].get());
 
-                        CanFTP_Server_Session_InitFileConfiguration(session, pageIndex, fileContent.size());
+                        CanFTP_Server_Session_InitFileConfiguration(session, firstPageIndex, pagesCount, fileContent.size());
                         printf("- File has been inited\r\n");
 
                         CanFTP_Server_Session_InitClients(session, clientsCount, sessionClients.get());
@@ -441,8 +467,10 @@ namespace canftp
         this->Server_()->defaultSessionConfiguration.blockControlInterval = std::stoi(config["blockControlInterval"].as<std::string>());
         this->Server_()->defaultSessionConfiguration.blockControlRepeateCount = std::stoi(config["blockControlRepeateCount"].as<std::string>());
         this->Server_()->defaultSessionConfiguration.frameSendingInterval = std::stoi(config["frameSendingInterval"].as<std::string>());
-        this->Server_()->defaultSessionConfiguration.repeateAckInterval = std::stoi(config["repeateAckInterval"].as<std::string>());
-        this->Server_()->defaultSessionConfiguration.repeateAckCount = std::stoi(config["repeateAckCount"].as<std::string>());
+        this->Server_()->defaultSessionConfiguration.clientSessionRepeateInterval = std::stoi(config["clientSessionRepeateInterval"].as<std::string>());
+        this->Server_()->defaultSessionConfiguration.clientSessionRepeateCount = std::stoi(config["clientSessionRepeateCount"].as<std::string>());
+        this->Server_()->defaultSessionConfiguration.clientBlockRepeateInterval = std::stoi(config["clientBlockRepeateInterval"].as<std::string>());
+        this->Server_()->defaultSessionConfiguration.clientBlockRepeateCount = std::stoi(config["clientBlockRepeateCount"].as<std::string>());
     }
 
     void ServerHandler::InitDefault_()

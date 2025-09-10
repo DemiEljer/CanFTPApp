@@ -96,10 +96,17 @@ namespace canftp
     CanFTP_Logical_t ClientHandler::ClientSessionConfigurationRequestCallback(CanFTP_Client_Session_Configuration_t* configuration)
     {
         printf("! Client (%u) has been configured for session\r\n", this->Client_()->deviceConfig.serialNumber);
-        printf("- PageIndex = %u\r\n", configuration->pageIndex);
+        printf("- New version : %u.%u.%u\r\n"
+            , configuration->newSoftVersion.higherPart
+            , configuration->newSoftVersion.middlePart
+            , configuration->newSoftVersion.lowerPart);
+        printf("- FirstPageIndex = %u\r\n", configuration->firstPageIndex);\
+        printf("- PagesCount = %u\r\n", configuration->pagesCount);
         printf("- FileLength = %u\r\n", configuration->fileLength);
-        printf("- RepeateAckCount = %u\r\n", configuration->repeateAckCount);
-        printf("- RepeateInterval = %u\r\n", configuration->repeateInterval);
+        printf("- SessionRepeateCount = %u\r\n", configuration->sessionRepeateCount);
+        printf("- SessionRepeateInterval = %u\r\n", configuration->sessionRepeateInterval);
+        printf("- BlockRepeateCount = %u\r\n", configuration->blockRepeateCount);
+        printf("- BlockRepeateInterval = %u\r\n", configuration->blockRepeateInterval);
 
         if (this->ReceivingFile_ != nullptr)
         {
@@ -158,7 +165,7 @@ namespace canftp
     {
         CanFTP_Client_Init(this->Client_());
 
-        this->Client_()->callbacks.blockRecieceCallback = _ClientSessionBlockRecievedCallback;
+        this->Client_()->callbacks.blockRecieveCallback = _ClientSessionBlockRecievedCallback;
         this->Client_()->callbacks.lockLogicRequestCallback = _ClientLogicLockRequestCallback;
         this->Client_()->callbacks.sendMessageCallback = _ClientSendMessageCallback;
         this->Client_()->callbacks.sessionConfigureationCallback = _ClientSessionConfigurationRequestCallback;

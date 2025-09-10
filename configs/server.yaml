@@ -1,4 +1,4 @@
-registrationInterval: 100
+registrationInterval: 250
 registrationRepeateCount: 10
 sessionControlInterval: 100
 sessionControlRepeateCount: 10
@@ -6,5 +6,7 @@ repeateBlockCount: 10
 blockControlInterval: 50 
 blockControlRepeateCount: 10 
 frameSendingInterval: 1
-repeateAckInterval: 100
-repeateAckCount: 10
+clientSessionRepeateInterval: 250
+clientSessionRepeateCount: 10
+clientBlockRepeateInterval: 100
+clientBlockRepeateCount: 10
